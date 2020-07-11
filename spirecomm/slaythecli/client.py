@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import os
 import asyncio
 import threading
 import json
@@ -313,7 +312,6 @@ def get_input(client, verbose):
 
 
 def main(ip, port, verbose):
-    os.system("clear")
     client = SlayTheSpireClient(ip=ip, port=port)
     client.start()
     get_input(client, verbose)
