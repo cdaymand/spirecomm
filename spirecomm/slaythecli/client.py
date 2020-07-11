@@ -29,6 +29,13 @@ CARD_RARITY_COLOR = {
     CardRarity.CURSE: "magenta"
 }
 
+ORB_COLOR = {
+    "Lightning": "yellow",
+    "Dark": "magenta",
+    "Frost": "blue",
+    "Plasma": "Orange"
+}
+
 
 def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
@@ -134,7 +141,8 @@ class SlayTheSpireClient(threading.Thread):
         combat_table.add_row(combat_row)
         print(combat_table)
         if game.player.orbs:
-            print(f"Orbs: {[f'{orb.name} {orb.passive_amount}({orb.evoke_amount})' for orb in game.player.orbs]}")
+            orbs = ' '.join([f'[{colored(orb.name, ORB_COLOR.get(orb.name))} {orb.passive_amount}({orb.evoke_amount})]' for orb in game.player.orbs])
+            print(f"Orbs: {orbs}")
         self.show_cards(game.hand)
 
     def display_card_reward(self):
