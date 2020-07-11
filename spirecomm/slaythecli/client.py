@@ -42,8 +42,23 @@ def chunks(lst, n):
         yield lst[i:i + n]
 
 
+class SimpleTable:
+    def __init__(self, *args, **kwargs):
+        self.rows = []
+
+    def add_row(self, row):
+        self.rows.append(row)
+
+    def __str__(self):
+        result = ""
+        for row in self.rows:
+            for column in row:
+                result += column.replace('\n', ' ') + "\n"
+        return result
+
+
 class SlayTheSpireClient(threading.Thread):
-    def __init__(self, ip, port):
+    def __init__(self, ip, port, accessibility=False):
         self.ready_for_command = threading.Event()
         self.last_update_time = None
         self.reader = None
@@ -57,6 +72,9 @@ class SlayTheSpireClient(threading.Thread):
         self.communication_state = None
         self.available_commands = []
         self.current_node = (0, -1)
+        if accessibility:
+            global PrettyTable
+            PrettyTable = SimpleTable
         super().__init__()
 
     def run(self):
@@ -118,6 +136,7 @@ class SlayTheSpireClient(threading.Thread):
             damage_expected = colored(damage_expected, "green")
 
         combat_row.append("\n".join([
+            'Player',
             f'HP: {game.player.current_hp}/{game.player.max_hp}',
             f'Block: {game.player.block}',
             f'Damage expected: {damage_expected}',
@@ -306,13 +325,13 @@ class SlayTheSpireClient(threading.Thread):
         self.writer.close()
 
 
-def get_input(client, verbose):
-    command_helper = CommandHelper(client, verbose)
+def get_input(client, accessibility, verbose):
+    command_helper = CommandHelper(client, accessibility, verbose)
     command_helper.receive_commands()
 
 
-def main(ip, port, verbose):
-    client = SlayTheSpireClient(ip=ip, port=port)
+def main(ip, port, accessibility, verbose):
+    client = SlayTheSpireClient(ip=ip, port=port, accessibility=accessibility)
     client.start()
-    get_input(client, verbose)
+    get_input(client, accessibility, verbose)
     client.join()

@@ -7,12 +7,16 @@ logging.basicConfig(stream=sys.stdout, level=logging.ERROR)
 
 
 class CommandHelper:
-    def __init__(self, client, verbose):
+    def __init__(self, client, accessibility, verbose):
         self.client = client
         self.last_update_time = None
         self.logger = logging.getLogger(__name__)
         if verbose:
             self.logger.setLevel("DEBUG")
+        if accessibility:
+            self.prompt = self.simple_input
+        else:
+            self.prompt = self.interactive_input
 
     def get_available_commands(self):
         available_commands = list(self.client.available_commands)
@@ -47,7 +51,7 @@ class CommandHelper:
             {
                 'type': 'input',
                 'name': 'ascension_level',
-                'message': 'Ascension'
+                'message': 'Ascension:'
             },
             {
                 'type': 'input',
@@ -182,11 +186,35 @@ class CommandHelper:
                 return
         self.send(f"potion {potion_command['action']} {index} {target}")
 
-    def prompt(self, prompt_dict):
+    def interactive_input(self, prompt_list):
         if self.last_update_time != self.client.last_update_time:
             return {}
-        result = prompt(prompt_dict)
+        result = prompt(prompt_list)
         result = result if result is not None else {}
+        return result
+
+    def simple_input(self, prompt_list):
+        if self.last_update_time != self.client.last_update_time:
+            return {}
+        result = {}
+        for p in prompt_list:
+            if p['type'] == "input":
+                print(p['message'])
+                result[p['name']] = input(">>> ")
+            elif p['type'] == "list":
+                print(p['message'])
+                i = 1
+                for choice in p['choices']:
+                    print(f"{i}) {choice}")
+                    i += 1
+                value = input(">>> ")
+                try:
+                    result[p['name']] = p['choices'][int(value) - 1]
+                except (TypeError, IndexError, ValueError):
+                    if value in p['choices']:
+                        result[p['name']] = value
+                    else:
+                        result[p['name']] = None
         return result
 
     def receive_commands(self):
